@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#430c17">
+<title>R∴L∴S∴ Rafael Nájera #33 · Registro de asistencia</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  /* Fondo granada como el estandarte de la logia; tarjetas en negro y acentos dorados. */
+  :root { --bg:#5c1220; --bg2:#430c17; --panel:#141414; --panel2:#0a0a0a; --line:#2e2e2e; --txt:#efe6d3; --mut:#b3a993;
+          --gold:#d4a84b; --gold2:#e0b95a; --goldbg:#3a2f14;
+          --ok:#15803d; --info:#1d4ed8; --warn:#b45309; --err:#b91c1c; color-scheme:dark; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; min-height:100%; background:var(--bg); color:var(--txt); font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  body { display:flex; flex-direction:column; min-height:100vh; }
+  .serif { font-family:Georgia,"Times New Roman",serif; }
+
+  header { display:flex; align-items:center; gap:12px; padding:8px 16px; background:var(--bg2); border-bottom:3px solid var(--gold);
+           position:sticky; top:0; z-index:5; flex-wrap:wrap; }
+  header .marca { display:flex; align-items:center; gap:10px; flex:1; min-width:220px; }
+  header .marca img { height:54px; width:auto; display:block; }
+  header h1 { margin:0; font-size:19px; line-height:1.15; color:#f6ead2; font-weight:700; }
+  header h1 small { display:block; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-size:12.5px; font-weight:600;
+                    color:var(--gold2); letter-spacing:.8px; text-transform:uppercase; margin-top:2px; }
+  header .estado { display:flex; align-items:center; gap:8px; }
+  #btnAjustes { padding:7px 11px; font-size:17px; line-height:1; background:transparent; color:#f6ead2; border-color:#a8735a; }
+  #btnAjustes:hover { background:rgba(255,255,255,.08); }
+  @media (max-width:520px) {
+    header { padding:8px 12px; gap:8px; }
+    header .marca img { height:46px; }
+    header h1 { font-size:17px; }
+    header .estado { width:100%; justify-content:flex-end; margin-top:-4px; }
+    #btnAjustes { padding:5px 9px; font-size:15px; }
+    #contador { font-size:38px; }
+  }
+
+  .pill { font-size:12.5px; font-weight:600; padding:4px 11px; border-radius:999px; background:var(--panel); color:var(--mut); white-space:nowrap; }
+  .pill.on { color:#bbf7d0; background:#14532d; } .pill.off { color:#fde68a; background:#78350f; } .pill.warn { color:#fff; background:var(--err); }
+  button.pill { border:0; cursor:pointer; font:inherit; font-size:12.5px; font-weight:600; padding:4px 11px; }
+
+  main { max-width:760px; width:100%; margin:0 auto; padding:16px; flex:1; }
+  .card { background:var(--panel); border:1px solid #8c6d2e; border-radius:16px; padding:16px; margin-bottom:14px; box-shadow:0 4px 14px rgba(0,0,0,.5); }
+  h2 { color:var(--gold2); }
+  label { display:block; font-size:13px; font-weight:600; color:var(--mut); margin:10px 0 4px; }
+  input, select { width:100%; padding:11px 12px; font-size:16px; border-radius:10px; border:1px solid var(--line); background:var(--panel2); color:var(--txt); }
+  input::placeholder { color:#7d7563; }
+  input:focus, select:focus { outline:2px solid var(--gold); outline-offset:1px; border-color:var(--gold); }
+  button { font:inherit; padding:11px 16px; border-radius:10px; border:1px solid var(--line); background:#1f1f1f; color:var(--txt); cursor:pointer; font-weight:500; }
+  button:hover { background:#2a2a2a; }
+  button.primary { background:var(--gold); color:#1a1408; border-color:var(--gold); font-weight:700; }
+  button.primary:hover { background:var(--gold2); }
+  button.danger { border-color:#7f1d1d; color:#fca5a5; }
+  button:disabled { opacity:.5; cursor:default; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; } .row > * { flex:1; min-width:140px; }
+  .hidden { display:none !important; }
+
+  .bienvenida { text-align:center; margin:2px 0 12px; }
+  .bienvenida img { width:190px; height:auto; filter:drop-shadow(0 4px 10px rgba(30,4,9,.45)); }
+
+  #tenidaInfo { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  #tenidaInfo > div:first-child { flex:1; min-width:0; }
+  #tTitulo { color:var(--gold2); font-size:20px; }
+  #tFecha { color:var(--txt); font-size:15px; margin-top:2px; }
+  #tDetalle { margin-top:1px; }
+  #contador { font-size:44px; font-weight:700; color:var(--gold); line-height:1; font-family:Georgia,"Times New Roman",serif; }
+
+  #feedback { min-height:150px; border-radius:16px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+              text-align:center; padding:20px; border:2px dashed #3a3a3a; color:var(--mut); background:var(--panel2); transition:background .15s; }
+  #feedback .big { font-size:28px; font-weight:700; color:var(--txt); }
+  #feedback .small { font-size:15px; margin-top:6px; }
+  #feedback.ok, #feedback.info, #feedback.warn, #feedback.err { border-style:solid; }
+  #feedback.ok { background:var(--ok); border-color:var(--ok); } #feedback.info { background:var(--info); border-color:var(--info); }
+  #feedback.warn { background:var(--warn); border-color:var(--warn); } #feedback.err { background:var(--err); border-color:var(--err); }
+  #feedback.ok .big, #feedback.info .big, #feedback.warn .big, #feedback.err .big,
+  #feedback.ok .small, #feedback.info .small, #feedback.warn .small, #feedback.err .small { color:#fff; }
+  .focusWarn { margin-top:8px; font-size:12.5px; color:var(--mut); text-align:center; cursor:pointer; }
+  .focusWarn::before { content:"● "; color:var(--gold); }
+  #scanInput { position:absolute; left:-9999px; opacity:0; width:1px; height:1px; }
+  #video { width:100%; max-height:320px; border-radius:12px; background:#000; object-fit:cover; margin-top:10px; }
+  #video.espejo { transform:scaleX(-1); }  /* la cámara frontal se ve como espejo, más natural */
+
+  ul#ultimos { list-style:none; margin:0; padding:0; max-height:300px; overflow:auto; }
+  ul#ultimos li { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:9px 2px; border-bottom:1px solid var(--line); font-size:15px; }
+  ul#ultimos li:last-child { border-bottom:0; }
+  ul#ultimos .nombre { display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
+  ul#ultimos .hora { color:var(--mut); font-size:13px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .chip { font-size:11.5px; font-weight:600; padding:1px 8px; border-radius:999px; background:var(--goldbg); color:var(--gold2); border:1px solid #6b5420; }
+  .chip.vis { background:#1e3a8a; color:#dbe4ff; border-color:#3651a8; }
+  .chip.man { background:#2a2a2a; color:#d4d4d4; border-color:#3a3a3a; }
+  .chip.err { background:#7f1d1d; color:#fecaca; border-color:#991b1b; }
+  .ok-sync { color:#4ade80; } .pend-sync { color:var(--gold); }
+  .hint { font-size:13px; color:var(--mut); }
+  button.mini { padding:2px 10px; font-size:12.5px; border-radius:8px; border-color:var(--gold); color:var(--gold2); background:var(--goldbg); font-weight:600; }
+
+  dialog { background:var(--panel); color:var(--txt); border:1px solid #8c6d2e; border-radius:16px; width:min(560px,94vw); padding:18px; }
+  dialog h3 { color:var(--gold2); }
+  dialog::backdrop { background:rgba(25,4,8,.65); }
+  #resultados, #mSugerencias { max-height:240px; overflow:auto; margin-top:8px; }
+  #resultados button, #mSugerencias button { display:block; width:100%; text-align:left; margin-bottom:6px; }
+  #estadoDetalle li { margin:4px 0; }
+  summary { cursor:pointer; }
+
+  footer { text-align:center; padding:14px 16px 18px; font-size:12.5px; color:#ead7b4; background:var(--bg2); border-top:2px solid var(--gold); }
+  footer b { color:var(--gold2); font-weight:600; }
+</style>
+</head>
+<body>
+<header>
+  <div class="marca">
+    <img src="logo-160.webp" alt="Logo del centenario de la R∴L∴S∴ Rafael Nájera #33">
+    <h1 class="serif">R∴L∴S∴ Rafael Nájera #33<small>Registro de asistencia</small></h1>
+  </div>
+  <div class="estado">
+    <span id="estadoRed" class="pill">…</span>
+    <button id="estadoPend" class="pill" title="Ver detalle de la sincronización">0 por subir</button>
+    <button id="btnAjustes" title="Ajustes" aria-label="Ajustes">⚙</button>
+  </div>
+</header>
+
+<main>
+  <!-- Abrir tenida -->
+  <div id="bienvenida" class="bienvenida hidden"><img src="logo-360.webp" alt="Centenario R∴L∴S∴ Rafael Nájera #33, 1926–2026"></div>
+  <section id="vistaAbrir" class="card hidden">
+    <h2 class="serif" style="margin:0 0 6px;font-size:22px;text-align:center">Abrir tenida</h2>
+    <div class="row">
+      <div><label for="fFecha">Fecha</label><input id="fFecha" type="date"></div>
+      <div><label for="fTipo">Tipo</label>
+        <select id="fTipo">
+          <option value="ORD">Ordinaria</option><option value="INI">Iniciación</option>
+          <option value="AUM">Aumento de salario</option><option value="EXA">Exaltación</option>
+          <option value="INS">Instalación</option>
+          <option value="FUN">Fúnebre</option>
+          <option value="RUS">Rústica</option><option value="ANI">Aniversario</option>
+        </select></div>
+      <div><label for="fGrado">Grado</label>
+        <select id="fGrado"><option value="">—</option><option value="1">1 · Aprendiz</option><option value="2">2 · Compañero</option><option value="3">3 · Maestro</option></select></div>
+    </div>
+    <label for="fLugar">Lugar (opcional)</label><input id="fLugar" maxlength="120" placeholder="Lugar de la rústica o del aniversario">
+    <p class="hint">Si otro dispositivo abre la misma fecha y tipo, ambos registran en la misma tenida.</p>
+    <button id="btnAbrir" class="primary" style="width:100%;margin-top:6px">Abrir tenida</button>
+  </section>
+
+  <!-- Tenida abierta -->
+  <section id="vistaTenida" class="hidden">
+    <div class="card">
+      <div id="tenidaInfo">
+        <div><b id="tTitulo" class="serif"></b><div id="tFecha"></div><div class="hint" id="tDetalle"></div></div>
+        <div style="text-align:right"><div id="contador">0</div><div class="hint">registrados</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div id="feedback"><div class="big">Escanea tu tarjeta</div><div class="small">Acerca el código QR al lector</div></div>
+      <div id="avisoFoco" class="focusWarn hidden">Lector en pausa · toca aquí para seguir escaneando</div>
+      <input id="scanInput" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="none" aria-label="Entrada del lector">
+      <video id="video" class="hidden" playsinline muted></video>
+      <div class="row" style="margin-top:12px">
+        <button id="btnCamara">📷 Usar cámara</button>
+        <button id="btnCambiarCam" class="hidden">🔄 Cambiar cámara</button>
+        <button id="btnManual">Registro manual</button>
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center"><b>Últimos registros</b><span class="hint" id="padronInfo"></span></div>
+      <ul id="ultimos"></ul>
+    </div>
+    <div class="row">
+      <button id="btnSync">↑ Sincronizar ahora</button>
+      <button id="btnCSV">Exportar CSV (respaldo)</button>
+      <button id="btnCerrar" class="danger">Cerrar tenida</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Desarrollado por la <b>Comisión de Comunicación &amp; TI</b><br>
+  R∴L∴S∴ Rafael Nájera #33 · Or∴ de Monterrey, N.L.
+</footer>
+
+<!-- Ajustes -->
+<dialog id="dlgAjustes">
+  <h3 style="margin-top:0">Ajustes del dispositivo</h3>
+  <label for="cUrl">URL de la aplicación web (termina en /exec)</label><input id="cUrl" placeholder="https://script.google.com/macros/s/…/exec">
+  <label for="cClave">Clave</label><input id="cClave" type="password" autocomplete="off">
+  <label for="cDisp">Nombre de este dispositivo</label><input id="cDisp" maxlength="40" placeholder="Laptop entrada, celular secretaría…">
+  <p class="hint" id="cEstado"></p>
+  <div class="row">
+    <button id="btnProbar">Probar conexión</button>
+    <button id="btnPadron">Descargar padrón</button>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <button id="btnCerrarAjustes">Cancelar</button>
+    <button id="btnGuardarAjustes" class="primary">Guardar</button>
+  </div>
+</dialog>
+
+<!-- Registro manual -->
+<dialog id="dlgManual">
+  <h3 style="margin-top:0">Registro manual</h3>
+  <label for="mQuien">Registrado por (obligatorio)</label><input id="mQuien" maxlength="80" placeholder="Tu nombre">
+  <label for="mBuscar">Buscar hermano en el padrón</label><input id="mBuscar" placeholder="Nombre o apellido">
+  <div id="resultados"></div>
+  <details id="mSinTarjeta" style="margin-top:10px"><summary class="hint">No aparece / sin tarjeta</summary>
+    <label for="mTipo">Es</label>
+    <select id="mTipo"><option value="miembro">Hermano de la RN33</option><option value="visitador">Visitador</option></select>
+    <label for="mNombre">Nombre completo</label><input id="mNombre" maxlength="120">
+    <div id="mSugerencias"></div>
+    <div id="mCamposVis" class="hidden">
+      <div class="row">
+        <div><label for="mLogia">Logia (obligatorio)</label><input id="mLogia" maxlength="120" placeholder="Nombre y número"></div>
+        <div><label for="mOriente">Oriente</label><input id="mOriente" maxlength="80" placeholder="Ciudad"></div>
+        <div><label for="mGrado">Grado</label><select id="mGrado"><option value="">—</option><option value="1">1 · Aprendiz</option><option value="2">2 · Compañero</option><option value="3">3 · Maestro</option></select></div>
+      </div>
+    </div>
+    <button id="btnManualLibre" style="margin-top:8px;width:100%">Registrar sin tarjeta</button>
+  </details>
+  <div class="row" style="margin-top:12px"><button id="btnCerrarManual">Cerrar</button></div>
+</dialog>
+
+<!-- Estado de la sincronización -->
+<dialog id="dlgEstado">
+  <h3 style="margin-top:0">Sincronización</h3>
+  <ul id="estadoDetalle" style="padding-left:18px"></ul>
+  <div class="row" style="margin-top:12px">
+    <button id="btnReintentarErr">Reintentar los que tienen error</button>
+    <button id="btnSyncDlg" class="primary">Sincronizar ahora</button>
+  </div>
+  <div class="row" style="margin-top:10px"><button id="btnCerrarEstado">Cerrar</button></div>
+</dialog>
+
+<!-- Visitador con tarjeta no identificada -->
+<dialog id="dlgVisitante">
+  <h3 style="margin-top:0">Registrar visitador</h3>
+  <p class="hint" id="vTarjeta"></p>
+  <label for="vNombre">Nombre completo (obligatorio)</label><input id="vNombre" maxlength="120">
+  <div class="row">
+    <div><label for="vLogia">Logia (obligatorio)</label><input id="vLogia" maxlength="120" placeholder="Nombre y número"></div>
+    <div><label for="vOriente">Oriente</label><input id="vOriente" maxlength="80" placeholder="Ciudad"></div>
+  </div>
+  <div class="row">
+    <div><label for="vGrado">Grado</label><select id="vGrado"><option value="">—</option><option value="1">1 · Aprendiz</option><option value="2">2 · Compañero</option><option value="3">3 · Maestro</option></select></div>
+    <div><label for="vQuien">Registrado por (obligatorio)</label><input id="vQuien" maxlength="80"></div>
+  </div>
+  <div class="row" style="margin-top:12px">
+    <button id="btnCancelarVis">Cancelar</button>
+    <button id="btnGuardarVis" class="primary">Guardar visitador</button>
+  </div>
+</dialog>
+
+<script src="jsQR.js" defer></script>
+<script>
+'use strict';
+// ───────── Almacenamiento local ─────────
+const SERVIDOR_MINIMO = '1.5.7';
+const K = { srv:'rn33.servidor', cfg:'rn33.cfg', tenida:'rn33.tenidaActual', tenidas:'rn33.tenidas', regs:'rn33.registros', padron:'rn33.padron', visit:'rn33.visitantes' };
+const leer = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
+const guardar = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+
+const TIPOS = { ORD:'Ordinaria', INI:'Iniciación', AUM:'Aumento de salario', EXA:'Exaltación', INS:'Instalación', FUN:'Fúnebre', RUS:'Rústica', ANI:'Aniversario' };
+const TITULOS = { ORD:'Tenida Ordinaria', INI:'Tenida de Iniciación', AUM:'Tenida de Aumento de Salario', EXA:'Tenida de Exaltación',
+                  INS:'Tenida de Instalación', FUN:'Tenida Fúnebre', RUS:'Tenida Rústica', ANI:'Tenida de Aniversario' };
+const GRADOS = { '1':'Aprendiz', '2':'Compañero', '3':'Maestro' };
+function fechaLarga(iso) {
+  const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return iso || '';
+  const txt = new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString('es-MX', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  return txt.charAt(0).toUpperCase() + txt.slice(1);
+}
+const TEMPLO = 'Templo Dr. Cesar Decanini Flores';
+const TIPOS_EN_TEMPLO = ['ORD', 'INI', 'AUM', 'EXA', 'INS'];
+const GRADO_SUGERIDO = { INI:'1', AUM:'2', EXA:'3' };
+const $ = id => document.getElementById(id);
+
+// ───────── Lectura del QR ─────────
+// Tolerante a lectores USB configurados con otra distribución de teclado: "?" y "/" pueden llegar
+// cambiados, así que se toma el token de 32 hex al final y se exige que aparezca el dominio de la GL.
+function extraerToken(raw) {
+  const s = String(raw || '').trim();
+  const m = s.match(/([0-9a-fA-F]{32})\s*$/);
+  if (!m || !/granlogianl/i.test(s)) return null;
+  const antes = s.slice(0, s.length - m[0].length);
+  if (/[0-9a-fA-F]$/.test(antes)) return null; // más de 32 hex seguidos: no es un token de la GL
+  return m[1].toLowerCase();
+}
+
+function normalizar(t) { return t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+
+// ───────── Estado ─────────
+let ultimoToken = null, ultimoTokenHora = 0;
+
+function tenidaActual() { return leer(K.tenida, null); }
+function registros() { return leer(K.regs, []); }
+function padron() { return leer(K.padron, { actualizado:null, mapa:{} }); }
+function visitantes() { return leer(K.visit, []); }
+function cierresPendientes() { return Object.values(leer(K.tenidas, {})).filter(t => t.cierre_pendiente); }
+// Los registros que el servidor rechazó no cuentan como "por subir": se muestran aparte como "con error".
+function regsPorSubir() { return registros().filter(r => !r.sincronizado && !r.rechazo); }
+function regsConError() { return registros().filter(r => !r.sincronizado && r.rechazo); }
+function pendientesPorSubir() { return regsPorSubir().length + visitantes().filter(v => !v.sincronizado).length + cierresPendientes().length; }
+function versionMenor(a, b) { const pa = String(a || '0').split('.').map(Number), pb = String(b).split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) { if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) < (pb[i] || 0); } return false; }
+function servidorDesactualizado() { const v = leer(K.srv, {}); return v.consultado && versionMenor(v.version, SERVIDOR_MINIMO); }
+
+function registrar({ token = '', nombre_manual = '', origen, registrado_por = '', visitante = null, persona_id = '', es_visitador }) {
+  const t = tenidaActual();
+  if (!t) return { estado:'sin_tenida' };
+  const id_registro = token ? `${t.id}|${token}` : (persona_id ? `${t.id}|p:${persona_id}` : `${t.id}|m:${normalizar(nombre_manual)}`);
+  const regs = registros();
+  // Sin tarjeta: la misma persona puede llegar por nombre libre o elegida del padrón; se compara por nombre.
+  const yaEsta = regs.some(r => r.id_registro === id_registro ||
+    (!token && !r.token && r.tenida_id === t.id && normalizar(r.nombre_manual || '') === normalizar(nombre_manual)));
+  if (yaEsta) return { estado:'duplicado', id_registro };
+  const cfg = leer(K.cfg, {});
+  const reg = { id_registro, tenida_id:t.id, token, nombre_manual, hora:new Date().toISOString(), origen,
+                registrado_por, dispositivo:cfg.dispositivo || '', sincronizado:false };
+  if (persona_id) reg.persona_id = String(persona_id);
+  if (visitante) Object.assign(reg, { es_visitador:true, logia:visitante.logia, oriente:visitante.oriente, grado_declarado:visitante.grado });
+  else if (es_visitador === false) reg.es_visitador = false;
+  regs.push(reg);
+  guardar(K.regs, regs);
+  return { estado:'nuevo', reg };
+}
+
+// ───────── Retroalimentación ─────────
+let audioCtx;
+function pitido(tipo) {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.frequency.value = tipo === 'ok' ? 880 : tipo === 'err' ? 220 : 520;
+    g.gain.value = 0.08; o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + (tipo === 'err' ? 0.35 : 0.12));
+  } catch {}
+}
+let fbTimer;
+function mostrar(clase, grande, chico) {
+  const fb = $('feedback');
+  fb.className = clase; fb.innerHTML = '';
+  const a = document.createElement('div'); a.className = 'big'; a.textContent = grande; fb.appendChild(a);
+  if (chico) { const b = document.createElement('div'); b.className = 'small'; b.textContent = chico; fb.appendChild(b); }
+  pitido(clase === 'ok' ? 'ok' : clase === 'err' ? 'err' : 'x');
+  clearTimeout(fbTimer);
+  fbTimer = setTimeout(() => { fb.className = ''; fb.innerHTML = '<div class="big">Escanea tu tarjeta</div><div class="small">Acerca el código QR al lector</div>'; }, 3500);
+}
+
+function procesarLectura(raw, fuente = 'lector') {
+  const token = extraerToken(raw);
+  if (!token) {
+    if (fuente === 'camara') return; // la cámara puede ver otros códigos; no alarmar
+    mostrar('err', 'Código no válido', 'No es una tarjeta de la Gran Logia'); return;
+  }
+  const ahora = Date.now();
+  // Con la cámara la misma tarjeta se detecta muchas veces por segundo: se ignora 4 s.
+  if (fuente === 'camara' && token === ultimoToken && ahora - ultimoTokenHora < 4000) return;
+  ultimoToken = token; ultimoTokenHora = ahora;
+  const nombre = padron().mapa[token];
+  const r = registrar({ token, origen:'QR' });
+  if (r.estado === 'duplicado') mostrar('info', 'Ya estabas registrado', nombre || '');
+  else if (nombre) mostrar('ok', '✓ Registrado', nombre);
+  else mostrar('warn', '✓ Registrado', 'Tarjeta aún no identificada. Si es visitador, toca «Es visitador» en la lista.');
+  pintar();
+  sincronizarPronto();
+}
+
+// ───────── Lector USB (teclado) ─────────
+const scan = $('scanInput');
+let bufTimer;
+function enfocarLector() {
+  if (document.querySelector('dialog[open]') || $('vistaTenida').classList.contains('hidden')) return;
+  scan.focus({ preventScroll:true });
+}
+scan.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); const v = scan.value; scan.value = ''; if (v.trim()) procesarLectura(v); }
+});
+// Algunos lectores no envían Enter: se procesa tras una pausa en la entrada.
+scan.addEventListener('input', () => {
+  clearTimeout(bufTimer);
+  bufTimer = setTimeout(() => { const v = scan.value; if (v.trim().length >= 40) { scan.value = ''; procesarLectura(v); } }, 250);
+});
+scan.addEventListener('blur', () => setTimeout(() => {
+  const activo = document.activeElement;
+  if (activo !== scan && !$('vistaTenida').classList.contains('hidden') && !document.querySelector('dialog[open]')) $('avisoFoco').classList.remove('hidden');
+}, 150));
+scan.addEventListener('focus', () => $('avisoFoco').classList.add('hidden'));
+document.addEventListener('click', e => { if (!e.target.closest('input,select,textarea,dialog')) setTimeout(enfocarLector, 0); });
+$('avisoFoco').addEventListener('click', enfocarLector);
+
+// ───────── Cámara ─────────
+let stream = null, detector = null, camLoop = null;
+// Cámara trasera ('environment') o frontal ('user'); la elección se recuerda en el dispositivo.
+function camaraElegida() { return leer(K.cfg, {}).camara === 'user' ? 'user' : 'environment'; }
+async function iniciarCamara() {
+  const modo = camaraElegida();
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:modo } }, audio:false });
+  } catch (e) { mostrar('err', 'Sin acceso a la cámara', e.name === 'NotAllowedError' ? 'Permite el uso de la cámara' : String(e.message || e)); return; }
+  const v = $('video'); v.srcObject = stream; v.classList.remove('hidden'); await v.play();
+  v.classList.toggle('espejo', modo === 'user');
+  $('btnCamara').textContent = '■ Detener cámara';
+  // El botón para cambiar solo aparece si el equipo tiene más de una cámara.
+  try { const camaras = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+        $('btnCambiarCam').classList.toggle('hidden', camaras.length < 2); } catch {}
+  if ('BarcodeDetector' in window) { try { detector = new BarcodeDetector({ formats:['qr_code'] }); } catch { detector = null; } }
+  const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d', { willReadFrequently:true });
+  const paso = async () => {
+    if (!stream) return;
+    try {
+      if (v.readyState >= 2) {
+        let texto = null;
+        if (detector) { const c = await detector.detect(v); if (c.length) texto = c[0].rawValue; }
+        else if (window.jsQR) {
+          const w = Math.min(v.videoWidth, 640), h = Math.round(v.videoHeight * w / v.videoWidth);
+          canvas.width = w; canvas.height = h; ctx.drawImage(v, 0, 0, w, h);
+          const r = jsQR(ctx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts:'dontInvert' });
+          if (r) texto = r.data;
+        }
+        if (texto) procesarLectura(texto, 'camara');
+      }
+    } catch {}
+    camLoop = setTimeout(paso, 200);
+  };
+  paso();
+}
+function detenerCamara() {
+  clearTimeout(camLoop);
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  stream = null; $('video').classList.add('hidden'); $('btnCamara').textContent = '📷 Usar cámara';
+  $('btnCambiarCam').classList.add('hidden');
+  enfocarLector();
+}
+$('btnCamara').onclick = () => stream ? detenerCamara() : iniciarCamara();
+$('btnCambiarCam').onclick = async () => {
+  const cfg = leer(K.cfg, {}); cfg.camara = camaraElegida() === 'user' ? 'environment' : 'user'; guardar(K.cfg, cfg);
+  detenerCamara(); await iniciarCamara();
+};
+
+// ───────── Sincronización ─────────
+let sincronizando = false, syncTimer = null;
+async function llamar(accion, extra = {}) {
+  const cfg = leer(K.cfg, {});
+  if (!cfg.url || !cfg.clave) throw new Error('Falta configurar URL y clave');
+  const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 25000);
+  try {
+    // Cuerpo como texto plano: petición "simple" sin preflight CORS, que Apps Script acepta.
+    const resp = await fetch(cfg.url, { method:'POST', body:JSON.stringify({ clave:cfg.clave, accion, ...extra }), signal:ctl.signal });
+    let j;
+    try { j = await resp.json(); } catch { throw new Error('Respuesta no válida (¿la URL /exec es correcta y la implementación tiene acceso "Cualquier usuario"?)'); }
+    guardar(K.srv, { ...leer(K.srv, {}), version:j.version || '', consultado:Date.now() });
+    if (!j.ok) throw new Error(j.error === 'clave' ? 'Clave incorrecta' : 'Error del servidor: ' + (j.error || '') + ' ' + (j.detalle || ''));
+    return j;
+  } finally { clearTimeout(to); }
+}
+
+async function sincronizar(manual = false) {
+  if (sincronizando) return;
+  const pend = regsPorSubir();
+  const pendVis = visitantes().filter(v => !v.sincronizado).map(({ sincronizado, ...v }) => v);
+  const pendCierres = cierresPendientes().map(t => t.id);
+  const cfg = leer(K.cfg, {});
+  if (!cfg.url || !cfg.clave) { if (manual) alert('Configura la URL y la clave en Ajustes (⚙).'); return; }
+  if (!navigator.onLine && !manual) return;
+  sincronizando = true; pintarEstado('subiendo…');
+  try {
+    if (pend.length || pendVis.length || pendCierres.length) {
+      const tenidas = leer(K.tenidas, {});
+      // Primero las asistencias y después los cierres: el último lote lleva los cierres.
+      const ids = [...new Set(pend.map(r => r.tenida_id))];
+      const lotes = [];
+      for (let i = 0; i < pend.length; i += 200) lotes.push(pend.slice(i, i + 200).map(({ sincronizado, rechazo, ...r }) => r));
+      if (!lotes.length) lotes.push([]);
+      for (let n = 0; n < lotes.length; n++) {
+        const lote = lotes[n];
+        const ultimo = n === lotes.length - 1;
+        const idsLote = ultimo ? [...new Set([...ids, ...pendCierres])] : ids;
+        const tenLote = idsLote.map(id => tenidas[id]).filter(Boolean)
+          .map(({ cierre_pendiente, ...t }) => (ultimo || t.estado !== 'cerrada') ? t : { ...t, estado:'abierta', cerrada_en:undefined });
+        const j = await llamar('sincronizar', { tenidas: tenLote, registros: lote, visitantes: n === 0 ? pendVis : [] });
+        if ((j.identificados || []).length) {  // tarjetas que el servidor identificó con la página de la GL
+          const p = padron(); j.identificados.forEach(x => { if (/^[0-9a-f]{32}$/.test(x.token)) p.mapa[x.token] = String(x.nombre || ''); }); guardar(K.padron, p);
+        }
+        const cerradas = new Set(j.tenidas_cerradas || []);
+        if (cerradas.size) { const ts = leer(K.tenidas, {}); cerradas.forEach(id => { if (ts[id]) delete ts[id].cierre_pendiente; }); guardar(K.tenidas, ts); }
+        const visOk = new Set(j.visitantes_ok || []);
+        if (visOk.size) { const vs = visitantes(); vs.forEach(v => { if (visOk.has(v.token)) v.sincronizado = true; }); guardar(K.visit, vs); }
+        const hechos = new Set([...(j.aceptados || []), ...(j.duplicados || [])]);
+        const rech = new Map((j.rechazados || []).map(x => [x.id, x.motivo]));
+        const regs = registros();
+        regs.forEach(r => { if (hechos.has(r.id_registro)) { r.sincronizado = true; delete r.rechazo; } else if (rech.has(r.id_registro)) r.rechazo = rech.get(r.id_registro); });
+        guardar(K.regs, regs);
+      }
+    }
+    const p = padron();
+    const subioAlgo = pend.length || pendVis.length;
+    if (manual || subioAlgo || !p.actualizado || Date.now() - p.actualizado > 30 * 60 * 1000) await descargarPadron();
+    const srv = leer(K.srv, {}); srv.ultimoExito = Date.now(); delete srv.ultimoError; guardar(K.srv, srv);
+    if (manual) {
+      if (servidorDesactualizado()) mostrar('err', 'Servidor desactualizado', 'Publica una nueva versión de la implementación en Apps Script');
+      else mostrar('ok', 'Sincronizado', `${pendientesPorSubir()} por subir · ${regsConError().length} con error`);
+    }
+  } catch (e) {
+    const srv = leer(K.srv, {}); srv.ultimoError = { mensaje:String(e.name === 'AbortError' ? 'Tiempo de espera agotado' : (e.message || e)), hora:Date.now() }; guardar(K.srv, srv);
+    if (manual) mostrar('err', 'No se pudo sincronizar', srv.ultimoError.mensaje);
+  } finally { sincronizando = false; pintar(); }
+}
+function sincronizarPronto() { clearTimeout(syncTimer); syncTimer = setTimeout(() => sincronizar(false), 3000); }
+
+async function descargarPadron() {
+  const j = await llamar('padron');
+  const mapa = {}, lista = [], visitadores = [];
+  (j.padron || []).forEach(x => {
+    const nombre = String(x.nombre || ''), token = /^[0-9a-f]{32}$/.test(x.token) ? x.token : '', pid = /^\d{1,7}$/.test(String(x.persona_id || '')) ? String(x.persona_id) : '';
+    if (token) mapa[token] = nombre;
+    if (nombre && (token || pid)) lista.push({ token, persona_id:pid, nombre });
+    if (token && x.tipo === 'visitador') visitadores.push(token);
+  });
+  visitantes().forEach(v => { if (!mapa[v.token]) mapa[v.token] = v.nombre; }); // visitadores aún no subidos
+  guardar(K.padron, { actualizado:Date.now(), mapa, lista, visitadores });
+  return Object.keys(mapa).length;
+}
+
+// ───────── Vistas ─────────
+function pintarEstado(texto) {
+  const red = $('estadoRed');
+  red.textContent = texto || (navigator.onLine ? 'en línea' : 'sin conexión');
+  red.className = 'pill ' + (navigator.onLine ? 'on' : 'off');
+  const n = pendientesPorSubir(), e = regsConError().length, srv = leer(K.srv, {});
+  const pill = $('estadoPend');
+  if (servidorDesactualizado()) { pill.textContent = 'servidor desactualizado'; pill.className = 'pill warn'; }
+  else if (srv.ultimoError && n) { pill.textContent = `${n} por subir · error`; pill.className = 'pill warn'; }
+  else if (e) { pill.textContent = (n ? `${n} por subir · ` : '') + `${e} con error`; pill.className = 'pill warn'; }
+  else { pill.textContent = n ? `${n} por subir` : 'todo subido'; pill.className = 'pill ' + (n ? 'off' : 'on'); }
+}
+
+function pintar() {
+  pintarEstado();
+  const t = tenidaActual();
+  $('vistaAbrir').classList.toggle('hidden', !!t);
+  $('bienvenida').classList.toggle('hidden', !!t);
+  $('vistaTenida').classList.toggle('hidden', !t);
+  if (!t) { if (stream) detenerCamara(); return; }
+  $('tTitulo').textContent = TITULOS[t.tipo] || TIPOS[t.tipo];
+  $('tFecha').textContent = fechaLarga(t.fecha);
+  $('tDetalle').textContent = [t.grado ? 'En grado de ' + GRADOS[t.grado] : '', t.lugar].filter(Boolean).join(' · ');
+  const regs = registros().filter(r => r.tenida_id === t.id);
+  $('contador').textContent = regs.length;
+  const pad = padron(), mapa = pad.mapa, ul = $('ultimos'); ul.innerHTML = '';
+  const visTokens = new Set([...visitantes().map(v => v.token), ...(pad.visitadores || [])]);
+  const chip = (texto, clase) => { const c = document.createElement('span'); c.className = 'chip ' + clase; c.textContent = texto; return c; };
+  regs.slice(-30).reverse().forEach(r => {
+    const li = document.createElement('li');
+    const a = document.createElement('span'); a.className = 'nombre';
+    a.append(r.token ? (mapa[r.token] || 'Tarjeta …' + r.token.slice(-6)) : r.nombre_manual);
+    if (r.es_visitador || visTokens.has(r.token)) a.append(chip('visitador', 'vis'));
+    if (r.origen === 'manual') a.append(chip('manual', 'man'));
+    if (r.rechazo) a.append(chip('error: ' + r.rechazo, 'err'));
+    if (r.token && !mapa[r.token]) {
+      const bv = document.createElement('button'); bv.textContent = 'Es visitador'; bv.className = 'mini';
+      bv.onclick = () => abrirVisitante(r.token); a.append(bv);
+    }
+    const b = document.createElement('span'); b.className = 'hora';
+    b.textContent = new Date(r.hora).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit', hourCycle:'h23' }) + ' ';
+    const est = document.createElement('span');
+    est.className = r.sincronizado ? 'ok-sync' : 'pend-sync'; est.textContent = r.sincronizado ? '✓' : '⋯';
+    est.title = r.sincronizado ? 'Subido a la hoja' : 'Pendiente de subir';
+    b.append(est);
+    li.append(a, b); ul.appendChild(li);
+  });
+  const p = padron();
+  const nPadron = Array.isArray(p.lista) ? p.lista.length : Object.keys(p.mapa).length;
+  $('padronInfo').textContent = p.actualizado ? `Padrón: ${nPadron} · ${new Date(p.actualizado).toLocaleString('es-MX', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit', hourCycle:'h23' })}` : 'Padrón sin descargar';
+}
+
+// ───────── Detalle de sincronización ─────────
+function fechaCorta(ms) { return ms ? new Date(ms).toLocaleString('es-MX', { dateStyle:'short', timeStyle:'short' }) : '—'; }
+function pintarDetalle() {
+  const srv = leer(K.srv, {}), ul = $('estadoDetalle'); ul.innerHTML = '';
+  const item = (txt, warn) => { const li = document.createElement('li'); li.textContent = txt; if (warn) li.style.color = '#fca5a5'; ul.appendChild(li); };
+  item(`Asistencias por subir: ${regsPorSubir().length}`);
+  item(`Visitadores por subir: ${visitantes().filter(v => !v.sincronizado).length}`);
+  item(`Cierres de tenida por subir: ${cierresPendientes().length}`);
+  const err = regsConError();
+  item(`Asistencias rechazadas por el servidor: ${err.length}`, err.length);
+  err.slice(0, 10).forEach(r => item(`   · ${(r.token ? 'Tarjeta …' + r.token.slice(-6) : r.nombre_manual)} (${r.tenida_id}): ${r.rechazo}`, true));
+  item(`Versión del servidor: ${srv.version || 'desconocida'}` + (servidorDesactualizado() ? ` (se necesita ${SERVIDOR_MINIMO}: en Apps Script, Implementar > Administrar implementaciones > ✏ > Nueva versión)` : ''), servidorDesactualizado());
+  item(`Última sincronización correcta: ${fechaCorta(srv.ultimoExito)}`);
+  if (srv.ultimoError) item(`Último error: ${srv.ultimoError.mensaje} (${fechaCorta(srv.ultimoError.hora)})`, true);
+}
+$('estadoPend').onclick = () => { pintarDetalle(); $('dlgEstado').showModal(); };
+$('btnCerrarEstado').onclick = () => { $('dlgEstado').close(); enfocarLector(); };
+$('btnSyncDlg').onclick = async () => { await sincronizar(true); pintarDetalle(); };
+$('btnReintentarErr').onclick = async () => {
+  const regs = registros(); regs.forEach(r => { if (!r.sincronizado) delete r.rechazo; }); guardar(K.regs, regs);
+  await sincronizar(true); pintarDetalle();
+};
+
+// ───────── Abrir / cerrar tenida ─────────
+function hoyLocal() { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
+$('fFecha').value = hoyLocal();
+// El lugar se llena con el templo para los tipos que siempre se hacen ahí (se puede cambiar).
+function sugerirLugar() {
+  const tipo = $('fTipo').value, lugar = $('fLugar').value.trim();
+  if (TIPOS_EN_TEMPLO.includes(tipo)) { if (!lugar) $('fLugar').value = TEMPLO; }
+  else if (lugar === TEMPLO) $('fLugar').value = '';
+}
+$('fTipo').onchange = () => { $('fGrado').value = GRADO_SUGERIDO[$('fTipo').value] || ''; sugerirLugar(); };
+sugerirLugar();
+$('btnAbrir').onclick = () => {
+  const fecha = $('fFecha').value, tipo = $('fTipo').value;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) { alert('Fecha inválida'); return; }
+  const t = { id:`${fecha}-${tipo}`, fecha, tipo, grado:$('fGrado').value, lugar:$('fLugar').value.trim() };
+  const tenidas = leer(K.tenidas, {});
+  if (tenidas[t.id] && tenidas[t.id].estado === 'cerrada' &&
+      !confirm('Esta tenida ya se cerró. ¿Reabrirla en este dispositivo para registrar más asistencias?\n(En la hoja seguirá como cerrada; los registros nuevos sí se suben.)')) return;
+  tenidas[t.id] = t; guardar(K.tenidas, tenidas);
+  guardar(K.tenida, t);
+  pintar(); enfocarLector();
+};
+$('btnCerrar').onclick = () => {
+  if (!confirm('¿Cerrar la tenida en este dispositivo? Ya no se podrán registrar asistencias en ella aquí.')) return;
+  const t = tenidaActual(), tenidas = leer(K.tenidas, {});
+  if (t) tenidas[t.id] = { ...(tenidas[t.id] || t), estado:'cerrada', cerrada_en:new Date().toISOString(), cierre_pendiente:true };
+  guardar(K.tenidas, tenidas);
+  localStorage.removeItem(K.tenida); pintar(); sincronizar(false);
+};
+
+// ───────── Registro manual ─────────
+$('btnManual').onclick = () => {
+  $('mQuien').value = leer(K.cfg, {}).ultimoQuien || ''; $('mBuscar').value = ''; $('resultados').innerHTML = '';
+  ['mNombre', 'mLogia', 'mOriente', 'mGrado'].forEach(id => { $(id).value = ''; }); $('mSugerencias').innerHTML = ''; $('mTipo').value = 'miembro'; $('mCamposVis').classList.add('hidden'); $('mSinTarjeta').open = false;
+  $('dlgManual').showModal(); ($('mQuien').value ? $('mBuscar') : $('mQuien')).focus();
+};
+$('btnCerrarManual').onclick = () => { $('dlgManual').close(); enfocarLector(); };
+function quienManual() {
+  const q = $('mQuien').value.trim();
+  if (!q) { alert('Indica quién registra.'); $('mQuien').focus(); return null; }
+  const cfg = leer(K.cfg, {}); cfg.ultimoQuien = q; guardar(K.cfg, cfg); return q;
+}
+// Personas del padrón: con tarjeta (token) y sin tarjeta (persona_id). Padrones viejos solo traen el mapa.
+function personasPadron() {
+  const p = padron();
+  if (Array.isArray(p.lista)) return p.lista;
+  return Object.entries(p.mapa || {}).map(([token, nombre]) => ({ token, persona_id:'', nombre }));
+}
+function buscarEnPadron(texto) {
+  const palabras = normalizar(texto).split(' ').filter(w => w.length >= 2);
+  if (!palabras.length) return [];
+  return personasPadron().filter(x => { const n = normalizar(x.nombre); return palabras.every(w => n.includes(w)); }).slice(0, 15);
+}
+function pintarCoincidencias(cont, lista, vacio) {
+  cont.innerHTML = '';
+  lista.forEach(x => {
+    const b = document.createElement('button'); b.textContent = x.nombre + (x.token ? '' : ' (sin tarjeta)');
+    b.onclick = () => {
+      const quien = quienManual(); if (!quien) return;
+      const r = x.token ? registrar({ token:x.token, origen:'manual', registrado_por:quien })
+                        : registrar({ persona_id:x.persona_id, nombre_manual:x.nombre, origen:'manual', registrado_por:quien });
+      $('dlgManual').close();
+      mostrar(r.estado === 'duplicado' ? 'info' : 'ok', r.estado === 'duplicado' ? 'Ya estaba registrado' : '✓ Registrado (manual)', x.nombre);
+      pintar(); sincronizarPronto(); enfocarLector();
+    };
+    cont.appendChild(b);
+  });
+  if (!lista.length && vacio) cont.innerHTML = `<p class="hint">${vacio}</p>`;
+}
+$('mBuscar').oninput = () => {
+  const q = $('mBuscar').value;
+  if (normalizar(q).length < 2) { $('resultados').innerHTML = ''; return; }
+  pintarCoincidencias($('resultados'), buscarEnPadron(q), 'Sin coincidencias en el padrón descargado.');
+};
+// Al escribir el nombre de alguien "que no aparece", se sugieren personas que ya existen para no duplicarlas.
+$('mNombre').oninput = () => {
+  const encontrados = normalizar($('mNombre').value).length >= 4 ? buscarEnPadron($('mNombre').value) : [];
+  pintarCoincidencias($('mSugerencias'), encontrados, '');
+  if (encontrados.length) $('mSugerencias').insertAdjacentHTML('afterbegin', '<p class="hint">¿Es alguno de estos? Ya existe en el padrón:</p>');
+};
+$('mTipo').onchange = () => $('mCamposVis').classList.toggle('hidden', $('mTipo').value !== 'visitador');
+$('btnManualLibre').onclick = () => {
+  const nombre = $('mNombre').value.trim(), esVis = $('mTipo').value === 'visitador';
+  if (nombre.length < 3) { alert('Escribe el nombre completo.'); return; }
+  const visitante = esVis ? { logia:$('mLogia').value.trim(), oriente:$('mOriente').value.trim(), grado:$('mGrado').value } : null;
+  if (esVis && visitante.logia.length < 2) { alert('Indica la logia del visitador.'); $('mLogia').focus(); return; }
+  const quien = quienManual(); if (!quien) return;
+  const r = registrar({ nombre_manual:nombre, origen:'manual', registrado_por:quien, visitante, es_visitador:esVis });
+  $('dlgManual').close();
+  mostrar(r.estado === 'duplicado' ? 'info' : 'warn', r.estado === 'duplicado' ? 'Ya estaba registrado' : (esVis ? '✓ Visitador registrado' : '✓ Registrado sin tarjeta'),
+          nombre + (esVis ? ' · ' + visitante.logia : ''));
+  pintar(); sincronizarPronto(); enfocarLector();
+};
+
+// ───────── Visitador con tarjeta no identificada ─────────
+let tokenVisitante = null;
+function abrirVisitante(token) {
+  tokenVisitante = token;
+  $('vTarjeta').textContent = `Tarjeta …${token.slice(-6)}. Se dará de alta como visitador y en adelante se le reconocerá al escanear.`;
+  ['vNombre', 'vLogia', 'vOriente', 'vGrado'].forEach(id => { $(id).value = ''; });
+  $('vQuien').value = leer(K.cfg, {}).ultimoQuien || '';
+  $('dlgVisitante').showModal(); $('vNombre').focus();
+}
+$('btnCancelarVis').onclick = () => { $('dlgVisitante').close(); enfocarLector(); };
+$('btnGuardarVis').onclick = () => {
+  const v = { token:tokenVisitante, nombre:$('vNombre').value.trim(), logia:$('vLogia').value.trim(), oriente:$('vOriente').value.trim(),
+              grado:$('vGrado').value, registrado_por:$('vQuien').value.trim(), sincronizado:false };
+  if (v.nombre.length < 3) { alert('Escribe el nombre completo.'); $('vNombre').focus(); return; }
+  if (v.logia.length < 2) { alert('Indica la logia del visitador.'); $('vLogia').focus(); return; }
+  if (!v.registrado_por) { alert('Indica quién registra.'); $('vQuien').focus(); return; }
+  const cfg = leer(K.cfg, {}); cfg.ultimoQuien = v.registrado_por; guardar(K.cfg, cfg);
+  guardar(K.visit, visitantes().filter(x => x.token !== v.token).concat([v]));
+  const p = padron(); p.mapa[v.token] = v.nombre; guardar(K.padron, p);
+  $('dlgVisitante').close();
+  mostrar('ok', '✓ Visitador registrado', `${v.nombre} · ${v.logia}`);
+  pintar(); sincronizarPronto(); enfocarLector();
+};
+
+// ───────── Ajustes ─────────
+$('btnAjustes').onclick = () => {
+  const c = leer(K.cfg, {}); $('cUrl').value = c.url || ''; $('cClave').value = c.clave || ''; $('cDisp').value = c.dispositivo || ''; $('cEstado').textContent = '';
+  $('dlgAjustes').showModal();
+};
+function leerAjustesForm() {
+  const url = $('cUrl').value.trim();
+  if (url && !/^https:\/\/script\.google(usercontent)?\.com\/.+\/exec$/.test(url)) { $('cEstado').textContent = 'La URL debe ser la de Apps Script y terminar en /exec.'; return null; }
+  return { ...leer(K.cfg, {}), url, clave:$('cClave').value.trim(), dispositivo:$('cDisp').value.trim() };
+}
+$('btnGuardarAjustes').onclick = () => { const c = leerAjustesForm(); if (!c) return; guardar(K.cfg, c); $('dlgAjustes').close(); pintar(); enfocarLector(); sincronizar(false); };
+$('btnCerrarAjustes').onclick = () => { $('dlgAjustes').close(); enfocarLector(); };
+$('btnProbar').onclick = async () => {
+  const c = leerAjustesForm(); if (!c) return; guardar(K.cfg, c);
+  $('cEstado').textContent = 'Probando…';
+  try { await llamar('ping'); $('cEstado').textContent = '✓ Conexión correcta.'; } catch (e) { $('cEstado').textContent = '✗ ' + (e.message || e); }
+};
+$('btnPadron').onclick = async () => {
+  const c = leerAjustesForm(); if (!c) return; guardar(K.cfg, c);
+  $('cEstado').textContent = 'Descargando…';
+  try { const n = await descargarPadron(); $('cEstado').textContent = `✓ Padrón descargado: ${n} tarjetas identificadas.`; pintar(); } catch (e) { $('cEstado').textContent = '✗ ' + (e.message || e); }
+};
+
+// ───────── Respaldo CSV ─────────
+$('btnCSV').onclick = () => {
+  const t = tenidaActual(), mapa = padron().mapa;
+  const regs = registros().filter(r => !t || r.tenida_id === t.id);
+  const esc = v => `"${String(v ?? '').replace(/"/g, '""').replace(/^([=+\-@])/, "'$1")}"`;
+  const vis = Object.fromEntries(visitantes().map(v => [v.token, v]));
+  const filas = [['id_registro','tenida_id','token','nombre','visitador','logia','oriente','grado','hora','origen','registrado_por','dispositivo','sincronizado']]
+    .concat(regs.map(r => { const v = vis[r.token] || (r.es_visitador ? { logia:r.logia, oriente:r.oriente, grado:r.grado_declarado } : null);
+      return [r.id_registro, r.tenida_id, r.token, r.token ? (mapa[r.token] || '') : r.nombre_manual, v ? 'sí' : '', v ? v.logia : '', v ? v.oriente : '', v ? v.grado : '',
+              r.hora, r.origen, r.registrado_por, r.dispositivo, r.sincronizado ? 'sí' : 'no']; }));
+  const blob = new Blob(['﻿' + filas.map(f => f.map(esc).join(',')).join('\r\n')], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `asistencia_${t ? t.id : 'todas'}.csv`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+
+// ───────── Arranque ─────────
+$('btnSync').onclick = () => sincronizar(true);
+window.addEventListener('online', () => { pintarEstado(); sincronizar(false); });
+window.addEventListener('offline', () => pintarEstado());
+setInterval(() => sincronizar(false), 60000);
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+pintar(); enfocarLector(); sincronizar(false);
+</script>
+</body>
+</html>
