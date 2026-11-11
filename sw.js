@@ -1,5 +1,5 @@
 // Service worker: guarda la app para que abra sin internet. Las llamadas a Apps Script nunca se guardan.
-const VERSION = 'rn33-v6';
+const VERSION = 'rn33-v7';
 const ARCHIVOS = ['./', 'index.html', 'jsQR.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'logo-160.webp', 'logo-360.webp'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(ARCHIVOS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {

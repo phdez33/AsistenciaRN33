@@ -133,6 +133,7 @@
           <option value="AUM">Aumento de salario</option><option value="EXA">Exaltación</option>
           <option value="INS">Instalación</option>
           <option value="FUN">Fúnebre</option>
+          <option value="BLA">Blanca</option>
           <option value="RUS">Rústica</option><option value="ANI">Aniversario</option>
         </select></div>
       <div><label for="fGrado">Grado</label>
@@ -253,14 +254,14 @@
 <script>
 'use strict';
 // ───────── Almacenamiento local ─────────
-const SERVIDOR_MINIMO = '1.5.7';
+const SERVIDOR_MINIMO = '1.5.8';
 const K = { srv:'rn33.servidor', cfg:'rn33.cfg', tenida:'rn33.tenidaActual', tenidas:'rn33.tenidas', regs:'rn33.registros', padron:'rn33.padron', visit:'rn33.visitantes' };
 const leer = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
 const guardar = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
-const TIPOS = { ORD:'Ordinaria', INI:'Iniciación', AUM:'Aumento de salario', EXA:'Exaltación', INS:'Instalación', FUN:'Fúnebre', RUS:'Rústica', ANI:'Aniversario' };
+const TIPOS = { ORD:'Ordinaria', INI:'Iniciación', AUM:'Aumento de salario', EXA:'Exaltación', INS:'Instalación', FUN:'Fúnebre', BLA:'Blanca', RUS:'Rústica', ANI:'Aniversario' };
 const TITULOS = { ORD:'Tenida Ordinaria', INI:'Tenida de Iniciación', AUM:'Tenida de Aumento de Salario', EXA:'Tenida de Exaltación',
-                  INS:'Tenida de Instalación', FUN:'Tenida Fúnebre', RUS:'Tenida Rústica', ANI:'Tenida de Aniversario' };
+                  INS:'Tenida de Instalación', FUN:'Tenida Fúnebre', BLA:'Tenida Blanca', RUS:'Tenida Rústica', ANI:'Tenida de Aniversario' };
 const GRADOS = { '1':'Aprendiz', '2':'Compañero', '3':'Maestro' };
 function fechaLarga(iso) {
   const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return iso || '';
