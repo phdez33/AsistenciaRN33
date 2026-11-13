@@ -18,21 +18,24 @@
   body { display:flex; flex-direction:column; min-height:100vh; }
   .serif { font-family:Georgia,"Times New Roman",serif; }
 
-  header { display:flex; align-items:center; gap:12px; padding:8px 16px; background:var(--bg2); border-bottom:3px solid var(--gold);
-           position:sticky; top:0; z-index:5; flex-wrap:wrap; }
-  header .marca { display:flex; align-items:center; gap:10px; flex:1; min-width:220px; }
-  header .marca img { height:54px; width:auto; display:block; }
+  /* Sin "gap" en flexbox: Safari < 14.1 (iPad con iOS 12) no lo soporta; se usan márgenes. */
+  header { display:flex; align-items:center; padding:8px 16px; background:var(--bg2); border-bottom:3px solid var(--gold);
+           position:-webkit-sticky; position:sticky; top:0; z-index:5; flex-wrap:wrap; }
+  header .marca { display:flex; align-items:center; flex:1; min-width:220px; margin-right:12px; }
+  header .marca img { height:54px; width:auto; display:block; margin-right:10px; }
   header h1 { margin:0; font-size:19px; line-height:1.15; color:#f6ead2; font-weight:700; }
   header h1 small { display:block; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-size:12.5px; font-weight:600;
                     color:var(--gold2); letter-spacing:.8px; text-transform:uppercase; margin-top:2px; }
-  header .estado { display:flex; align-items:center; gap:8px; }
+  header .estado { display:flex; align-items:center; }
+  header .estado > * + * { margin-left:8px; }
   #btnAjustes { padding:7px 11px; font-size:17px; line-height:1; background:transparent; color:#f6ead2; border-color:#a8735a; }
   #btnAjustes:hover { background:rgba(255,255,255,.08); }
   @media (max-width:520px) {
-    header { padding:8px 12px; gap:8px; }
+    header { padding:8px 12px; }
     header .marca img { height:46px; }
     header h1 { font-size:17px; }
-    header .estado { width:100%; justify-content:flex-end; margin-top:-4px; }
+    header .marca { margin-right:0; }
+    header .estado { width:100%; justify-content:flex-end; margin-top:4px; }
     #btnAjustes { padding:5px 9px; font-size:15px; }
     #contador { font-size:38px; }
   }
@@ -54,13 +57,15 @@
   button.primary:hover { background:var(--gold2); }
   button.danger { border-color:#7f1d1d; color:#fca5a5; }
   button:disabled { opacity:.5; cursor:default; }
-  .row { display:flex; gap:10px; flex-wrap:wrap; } .row > * { flex:1; min-width:140px; }
+  .row { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); grid-gap:10px; gap:10px; }
+  .row > * { min-width:0; }
   .hidden { display:none !important; }
 
   .bienvenida { text-align:center; margin:2px 0 12px; }
   .bienvenida img { width:190px; height:auto; filter:drop-shadow(0 4px 10px rgba(30,4,9,.45)); }
 
-  #tenidaInfo { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  #tenidaInfo { display:flex; justify-content:space-between; align-items:center; }
+  #tenidaInfo > div + div { margin-left:12px; }
   #tenidaInfo > div:first-child { flex:1; min-width:0; }
   #tTitulo { color:var(--gold2); font-size:20px; }
   #tFecha { color:var(--txt); font-size:15px; margin-top:2px; }
@@ -83,10 +88,11 @@
   #video.espejo { transform:scaleX(-1); }  /* la cámara frontal se ve como espejo, más natural */
 
   ul#ultimos { list-style:none; margin:0; padding:0; max-height:300px; overflow:auto; }
-  ul#ultimos li { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:9px 2px; border-bottom:1px solid var(--line); font-size:15px; }
+  ul#ultimos li { display:flex; justify-content:space-between; align-items:center; padding:9px 2px; border-bottom:1px solid var(--line); font-size:15px; }
   ul#ultimos li:last-child { border-bottom:0; }
-  ul#ultimos .nombre { display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
-  ul#ultimos .hora { color:var(--mut); font-size:13px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  ul#ultimos .nombre { display:flex; align-items:center; flex-wrap:wrap; }
+  ul#ultimos .nombre > .chip, ul#ultimos .nombre > button { margin-left:6px; margin-top:2px; margin-bottom:2px; }
+  ul#ultimos .hora { color:var(--mut); font-size:13px; white-space:nowrap; font-variant-numeric:tabular-nums; margin-left:8px; }
   .chip { font-size:11.5px; font-weight:600; padding:1px 8px; border-radius:999px; background:var(--goldbg); color:var(--gold2); border:1px solid #6b5420; }
   .chip.vis { background:#1e3a8a; color:#dbe4ff; border-color:#3651a8; }
   .chip.man { background:#2a2a2a; color:#d4d4d4; border-color:#3a3a3a; }
@@ -95,6 +101,11 @@
   .hint { font-size:13px; color:var(--mut); }
   button.mini { padding:2px 10px; font-size:12.5px; border-radius:8px; border-color:var(--gold); color:var(--gold2); background:var(--goldbg); font-weight:600; }
 
+  dialog:not([open]) { display:none; }
+  /* Emulación de <dialog> para Safari < 15.4 (ver "Compatibilidad" en el script). */
+  dialog.emulado[open] { display:block; position:fixed; z-index:60; left:50%; top:4vh; -webkit-transform:translateX(-50%); transform:translateX(-50%);
+                         max-height:92vh; overflow:auto; -webkit-overflow-scrolling:touch; margin:0; }
+  body.con-dialogo::before { content:""; position:fixed; left:0; top:0; right:0; bottom:0; background:rgba(25,4,8,.65); z-index:50; }
   dialog { background:var(--panel); color:var(--txt); border:1px solid #8c6d2e; border-radius:16px; width:min(560px,94vw); padding:18px; }
   dialog h3 { color:var(--gold2); }
   dialog::backdrop { background:rgba(25,4,8,.65); }
@@ -110,7 +121,7 @@
 <body>
 <header>
   <div class="marca">
-    <img src="logo-160.webp" alt="Logo del centenario de la R∴L∴S∴ Rafael Nájera #33">
+    <picture><source srcset="logo-160.webp" type="image/webp"><img src="logo-160.png" alt="Logo del centenario de la R∴L∴S∴ Rafael Nájera #33"></picture>
     <h1 class="serif">R∴L∴S∴ Rafael Nájera #33<small>Registro de asistencia</small></h1>
   </div>
   <div class="estado">
@@ -122,7 +133,7 @@
 
 <main>
   <!-- Abrir tenida -->
-  <div id="bienvenida" class="bienvenida hidden"><img src="logo-360.webp" alt="Centenario R∴L∴S∴ Rafael Nájera #33, 1926–2026"></div>
+  <div id="bienvenida" class="bienvenida hidden"><picture><source srcset="logo-360.webp" type="image/webp"><img src="logo-360.png" alt="Centenario R∴L∴S∴ Rafael Nájera #33, 1926–2026"></picture></div>
   <section id="vistaAbrir" class="card hidden">
     <h2 class="serif" style="margin:0 0 6px;font-size:22px;text-align:center">Abrir tenida</h2>
     <div class="row">
@@ -253,11 +264,26 @@
 <script src="jsQR.js" defer></script>
 <script>
 'use strict';
+// ───────── Compatibilidad con navegadores viejos (iPad con iOS 12 / Safari 12) ─────────
+// Este script se mantiene en sintaxis ES2019: nada de ?? ni ?. (Safari 12 no los entiende y no correría nada).
+// <dialog> llegó a Safari en la 15.4: aquí se emulan showModal(), close() y .open con el atributo "open".
+Array.prototype.forEach.call(document.querySelectorAll('dialog'), d => {
+  if (typeof d.showModal === 'function') return;
+  d.classList.add('emulado');
+  d.showModal = () => { d.setAttribute('open', ''); document.body.classList.add('con-dialogo'); };
+  d.close = () => { d.removeAttribute('open'); if (!document.querySelector('dialog[open]')) document.body.classList.remove('con-dialogo'); };
+  try { Object.defineProperty(d, 'open', { get: () => d.hasAttribute('open'), configurable:true }); } catch (e) {}
+});
 // ───────── Almacenamiento local ─────────
 const SERVIDOR_MINIMO = '1.5.8';
 const K = { srv:'rn33.servidor', cfg:'rn33.cfg', tenida:'rn33.tenidaActual', tenidas:'rn33.tenidas', regs:'rn33.registros', padron:'rn33.padron', visit:'rn33.visitantes' };
 const leer = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
-const guardar = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+// Safari en modo privado (iOS 12) no deja guardar: se avisa en lugar de fallar en silencio.
+let avisoGuardar = false;
+const guardar = (k, v) => {
+  try { localStorage.setItem(k, JSON.stringify(v)); }
+  catch (e) { if (!avisoGuardar) { avisoGuardar = true; alert('Este navegador no permite guardar datos (¿está en modo privado?). Ábrelo en una pestaña normal.'); } throw e; }
+};
 
 const TIPOS = { ORD:'Ordinaria', INI:'Iniciación', AUM:'Aumento de salario', EXA:'Exaltación', INS:'Instalación', FUN:'Fúnebre', BLA:'Blanca', RUS:'Rústica', ANI:'Aniversario' };
 const TITULOS = { ORD:'Tenida Ordinaria', INI:'Tenida de Iniciación', AUM:'Tenida de Aumento de Salario', EXA:'Tenida de Exaltación',
@@ -368,6 +394,7 @@ function procesarLectura(raw, fuente = 'lector') {
 const scan = $('scanInput');
 let bufTimer;
 function enfocarLector() {
+  if (stream) return;  // con la cámara activa no se enfoca el lector: en tabletas abriría el teclado en pantalla
   if (document.querySelector('dialog[open]') || $('vistaTenida').classList.contains('hidden')) return;
   scan.focus({ preventScroll:true });
 }
@@ -394,8 +421,14 @@ function camaraElegida() { return leer(K.cfg, {}).camara === 'user' ? 'user' : '
 async function iniciarCamara() {
   const modo = camaraElegida();
   try {
+    // En iOS 12 la cámara solo funciona en Safari, no en la app agregada a la pantalla de inicio.
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw { name:'SinCamara' };
     stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:modo } }, audio:false });
-  } catch (e) { mostrar('err', 'Sin acceso a la cámara', e.name === 'NotAllowedError' ? 'Permite el uso de la cámara' : String(e.message || e)); return; }
+  } catch (e) {
+    mostrar('err', 'Sin acceso a la cámara', e.name === 'NotAllowedError' ? 'Permite el uso de la cámara'
+      : e.name === 'SinCamara' ? 'En este iPad abre la app directamente en Safari, no desde el ícono de inicio' : String(e.message || e));
+    return;
+  }
   const v = $('video'); v.srcObject = stream; v.classList.remove('hidden'); await v.play();
   v.classList.toggle('espejo', modo === 'user');
   $('btnCamara').textContent = '■ Detener cámara';
@@ -411,7 +444,7 @@ async function iniciarCamara() {
         let texto = null;
         if (detector) { const c = await detector.detect(v); if (c.length) texto = c[0].rawValue; }
         else if (window.jsQR) {
-          const w = Math.min(v.videoWidth, 640), h = Math.round(v.videoHeight * w / v.videoWidth);
+          const w = Math.min(v.videoWidth, 480), h = Math.round(v.videoHeight * w / v.videoWidth);  // 480 px: suficiente y ligero en equipos viejos
           canvas.width = w; canvas.height = h; ctx.drawImage(v, 0, 0, w, h);
           const r = jsQR(ctx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts:'dontInvert' });
           if (r) texto = r.data;
@@ -560,7 +593,7 @@ function pintar() {
       bv.onclick = () => abrirVisitante(r.token); a.append(bv);
     }
     const b = document.createElement('span'); b.className = 'hora';
-    b.textContent = new Date(r.hora).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit', hourCycle:'h23' }) + ' ';
+    b.textContent = new Date(r.hora).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit', hour12:false }) + ' ';
     const est = document.createElement('span');
     est.className = r.sincronizado ? 'ok-sync' : 'pend-sync'; est.textContent = r.sincronizado ? '✓' : '⋯';
     est.title = r.sincronizado ? 'Subido a la hoja' : 'Pendiente de subir';
@@ -569,7 +602,7 @@ function pintar() {
   });
   const p = padron();
   const nPadron = Array.isArray(p.lista) ? p.lista.length : Object.keys(p.mapa).length;
-  $('padronInfo').textContent = p.actualizado ? `Padrón: ${nPadron} · ${new Date(p.actualizado).toLocaleString('es-MX', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit', hourCycle:'h23' })}` : 'Padrón sin descargar';
+  $('padronInfo').textContent = p.actualizado ? `Padrón: ${nPadron} · ${new Date(p.actualizado).toLocaleString('es-MX', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit', hour12:false })}` : 'Padrón sin descargar';
 }
 
 // ───────── Detalle de sincronización ─────────
@@ -740,7 +773,7 @@ $('btnPadron').onclick = async () => {
 $('btnCSV').onclick = () => {
   const t = tenidaActual(), mapa = padron().mapa;
   const regs = registros().filter(r => !t || r.tenida_id === t.id);
-  const esc = v => `"${String(v ?? '').replace(/"/g, '""').replace(/^([=+\-@])/, "'$1")}"`;
+  const esc = v => `"${String(v == null ? '' : v).replace(/"/g, '""').replace(/^([=+\-@])/, "'$1")}"`;
   const vis = Object.fromEntries(visitantes().map(v => [v.token, v]));
   const filas = [['id_registro','tenida_id','token','nombre','visitador','logia','oriente','grado','hora','origen','registrado_por','dispositivo','sincronizado']]
     .concat(regs.map(r => { const v = vis[r.token] || (r.es_visitador ? { logia:r.logia, oriente:r.oriente, grado:r.grado_declarado } : null);
